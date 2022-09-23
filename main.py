@@ -78,13 +78,13 @@ if __name__ == '__main__':
 
     operators = [
         Operation(2, lambda a, b: a + b, lambda a, b: a.to_string() + " + " + b.to_string(), True),
-        Operation(2, lambda a, b: a - b, lambda a, b: a.to_string() + " - " + b.to_string(), True),
+        Operation(2, lambda a, b: a - b, lambda a, b: a.to_string() + " - " + b.to_string(), False),
         Operation(2, lambda a, b: a * b, lambda a, b: a.to_string() + " x " + b.to_string(), True),
         Operation(2, lambda a, b: 0 if b == 0 else a // b, lambda a, b: a.to_string() + " / " + b.to_string(), False),
         Operation(2, lambda a, b: int(math.pow(a, b)), lambda a, b: a.to_string() + " ^ " + b.to_string(), False),
     ]
 
-    numbers = [5, 5, 5, 5]
+    numbers = [9, 9, 8, 6]
 
     searcher = Searcher(operators, 24)
     searcher([Number(n, str(n)) for n in numbers])
