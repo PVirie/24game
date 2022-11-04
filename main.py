@@ -29,20 +29,19 @@ class Operation:
         return self.commutative
 
     def __call__(self, numbers):
-        return Number(self.func(*[n() for n in numbers]), "(" + self.rep(*numbers) + ")")
+        value = self.func(*[n() for n in numbers])
+        if abs(value - int(value)) > 1e-4:
+            raise ValueError("Not an integer")
+        return Number(int(value), "(" + self.rep(*numbers) + ")")
 
 
 def bigroup(items, size, commutative):
     indices = set(range(len(items)))
-    dup_check_table = []
     generator = combinations(indices, size) if commutative else permutations(indices, size)
     for selected in generator:
         not_selected = indices - set(selected)
         selected_result = [items[i] for i in selected]
-        hash_number = "".join([str(n()) for n in selected_result])
-        if hash_number not in dup_check_table:
-            yield selected_result, [items[i] for i in not_selected]
-            dup_check_table.append(hash_number)
+        yield selected_result, [items[i] for i in not_selected]
 
 
 class Searcher:
@@ -56,6 +55,8 @@ class Searcher:
                 self.group_sizes[operator.count_operands()] = []
             self.group_sizes[operator.count_operands()].append(operator)
 
+        self.dup_check_table = []
+
     def __call__(self, numbers):
         for size, sub_operators in self.group_sizes.items():
             for operator in sub_operators:
@@ -63,7 +64,7 @@ class Searcher:
                     try:
                         new_number = operator(selected)
                     except Exception as e:
-                        pass
+                        continue
 
                     if len(not_selected) == 0:
                         if new_number() == self.target:
@@ -71,20 +72,38 @@ class Searcher:
                     else:
                         new_numbers = [new_number]
                         new_numbers.extend(not_selected)
+
+                        # sorted([n() for n in new_numbers])
+                        # hash_number = "".join([str(n()) for n in new_numbers])
+                        # if hash_number not in self.dup_check_table:
+                        # self.dup_check_table.append(hash_number)
                         self(new_numbers)
+
+
+def v_sqrt(a):
+    if a > 1:
+        return math.sqrt(a)
+    raise ValueError("Sqrt less than 1")
+
+
+def v_div(a, b):
+    if b == 0:
+        raise ValueError("Div by zero")
+    return a / b
 
 
 if __name__ == '__main__':
 
     operators = [
+        Operation(1, v_sqrt, lambda a: "r(" + a.to_string() + ")", False),
         Operation(2, lambda a, b: a + b, lambda a, b: a.to_string() + " + " + b.to_string(), True),
         Operation(2, lambda a, b: a - b, lambda a, b: a.to_string() + " - " + b.to_string(), False),
         Operation(2, lambda a, b: a * b, lambda a, b: a.to_string() + " x " + b.to_string(), True),
-        Operation(2, lambda a, b: 0 if b == 0 else a // b, lambda a, b: a.to_string() + " / " + b.to_string(), False),
-        Operation(2, lambda a, b: int(math.pow(a, b)), lambda a, b: a.to_string() + " ^ " + b.to_string(), False),
+        Operation(2, v_div, lambda a, b: a.to_string() + " / " + b.to_string(), False),
+        Operation(2, lambda a, b: math.pow(a, b), lambda a, b: a.to_string() + " ^ " + b.to_string(), False)
     ]
 
-    numbers = [9, 9, 8, 6]
+    numbers = [8, 4, 2, 6, 5]
 
-    searcher = Searcher(operators, 24)
+    searcher = Searcher(operators, 497)
     searcher([Number(n, str(n)) for n in numbers])
