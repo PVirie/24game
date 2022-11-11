@@ -38,6 +38,7 @@ class Expression(Token):
                 pass
             elif c == "(":
                 token = Expression(expr_str[(i + 1):], self.operators)
+                self.node = token
                 token.set_leading(prev_token)
                 prev_token = token
                 s = token.terminal
@@ -51,6 +52,7 @@ class Expression(Token):
                     prev_token.concat(float(c))
                 else:
                     token = Number(float(c))
+                    self.node = token
                     token.set_leading(prev_token)
                     prev_token = token
             else:
@@ -118,13 +120,13 @@ class Operator(Token):
 
     def operate(self):
         if self.type == Operator_type.PREFIX:
-            print(self.symbol, self.trailing.evaluate(), self.implementation(self.trailing.evaluate()))
+            print(self.symbol, self.trailing.evaluate(), "=", self.implementation(self.trailing.evaluate()))
             product = Number(self.implementation(self.trailing.evaluate()))
             product.set_leading(self.leading)
             if self.trailing is not None:
                 product.set_trailing(self.trailing.trailing)
         elif self.type == Operator_type.BINARY:
-            print(self.symbol, self.leading.evaluate(), self.trailing.evaluate(), self.implementation(self.leading.evaluate(), self.trailing.evaluate()))
+            print(self.leading.evaluate(), self.symbol, self.trailing.evaluate(), "=", self.implementation(self.leading.evaluate(), self.trailing.evaluate()))
             product = Number(self.implementation(self.leading.evaluate(), self.trailing.evaluate()))
             if self.leading is not None:
                 product.set_leading(self.leading.leading)
@@ -142,5 +144,5 @@ if __name__ == '__main__':
         Operator("sqrt", Operator_type.PREFIX, Operator_group.FUNCTION, lambda a: math.sqrt(a))
     ]
 
-    r = Expression("1 + sqrt(3x3) + 3x(2 + 5x(1 + 1) )", operators).evaluate()
-    print(r)
+    r = Expression("1 + sqrt(3x3x( sqrt(1) - 0)) + 3x(2 + 5x(1 + 1) )", operators).evaluate()
+    print(r, "#")
